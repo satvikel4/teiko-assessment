@@ -34,3 +34,18 @@ CREATE INDEX idx_subjects_project ON subjects(project_id);
 CREATE INDEX idx_samples_subject ON samples(subject_id);
 CREATE INDEX idx_subjects_cohort ON subjects(condition, treatment, response);
 CREATE INDEX idx_samples_cohort ON samples(sample_type, time_from_treatment_start);
+
+CREATE VIEW population_frequencies AS
+WITH sample_totals AS (
+    SELECT sample_id, SUM(count) AS total_count
+    FROM cell_counts
+    GROUP BY sample_id
+)
+SELECT
+    c.sample_id AS sample,
+    t.total_count,
+    c.population,
+    c.count,
+    100.0 * c.count / NULLIF(t.total_count, 0) AS percentage
+FROM cell_counts AS c
+JOIN sample_totals AS t ON t.sample_id = c.sample_id;
