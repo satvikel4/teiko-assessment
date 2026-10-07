@@ -63,7 +63,10 @@ st.divider()
 st.header("Treatment response comparison")
 st.caption("Melanoma · miraclib · PBMC samples")
 try:
-    from analysis import compare_responses, load_response_cohort
+    from analysis import (
+        baseline_male_responder_b_cells, compare_responses,
+        load_baseline_analysis, load_response_cohort,
+    )
 except ModuleNotFoundError:
     st.error("Install the analysis dependencies with: pip install -r requirements.txt")
     st.stop()
@@ -134,3 +137,41 @@ st.caption(
 )
 st.download_button("Download all response comparisons", results.to_csv(index=False).encode("utf-8"),
                    file_name="response_comparisons.csv", mime="text/csv")
+
+st.divider()
+st.header("Baseline subset analysis")
+st.caption("Melanoma · miraclib · PBMC · day 0")
+with sqlite3.connect(f"{DB_PATH.as_uri()}?mode=ro", uri=True) as connection:
+    baseline, summaries = load_baseline_analysis(connection)
+    b_cell_samples, b_cell_mean = baseline_male_responder_b_cells(connection)
+
+left, right = st.columns(2)
+left.metric("Baseline samples", len(baseline))
+right.metric("Baseline subjects", baseline.subject.nunique())
+if baseline.empty:
+    st.info("No samples meet the baseline subset criteria.")
+
+st.subheader("Samples by project")
+st.dataframe(summaries["project"], hide_index=True, width="stretch")
+st.subheader("Subjects by response")
+st.dataframe(
+    summaries["response"].assign(response=lambda frame: frame.response.map(
+        {"yes": "Responder", "no": "Non-responder"}
+    ).fillna("Unknown")),
+    hide_index=True, width="stretch",
+)
+st.subheader("Subjects by sex")
+st.dataframe(
+    summaries["sex"].assign(sex=lambda frame: frame.sex.map({"M": "Male", "F": "Female"})),
+    hide_index=True, width="stretch",
+)
+st.caption("Project totals count samples. Response and sex totals count distinct subjects.")
+st.subheader("Baseline samples")
+st.dataframe(baseline, hide_index=True, width="stretch")
+st.download_button("Download baseline samples", baseline.to_csv(index=False).encode("utf-8"),
+                   file_name="baseline_samples.csv", mime="text/csv")
+
+st.subheader("Mean B-cell count: baseline male responders")
+st.caption("Melanoma · male · responder · day 0 · all treatments and sample types")
+st.metric("Average B-cell count", f"{b_cell_mean:.2f}" if b_cell_mean is not None else "N/A")
+st.write(f"Calculated from {b_cell_samples} samples using raw B-cell counts.")
