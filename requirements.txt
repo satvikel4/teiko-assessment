@@ -1,2 +1,4 @@
 pandas>=2.2,<3
 streamlit>=1.49,<2
+scipy>=1.11,<2
+altair>=5,<7
