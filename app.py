@@ -117,6 +117,16 @@ st.dataframe(day_results, hide_index=True, width="stretch", column_order=[
 })
 significant = day_results.loc[day_results.significant, "population"].tolist()
 st.write("Significant populations: " + (", ".join(significant) if significant else "None") + ".")
+st.subheader("Overall conclusion across all three days")
+st.write(
+    "Among melanoma patients receiving miraclib with PBMC samples, none of the five cell "
+    "populations showed a statistically significant difference between responders and "
+    "nonresponders at days 0, 7, or 14. Each comparison included 331 responders and "
+    "325 nonresponders. We used two-sided Mann–Whitney U tests with Bonferroni correction "
+    "across 15 comparisons and an adjusted significance threshold of 0.05. The smallest "
+    "adjusted p-value was 0.216 for B cells at day 14. These results do not provide "
+    "sufficient evidence of a difference; they do not establish that the groups are equivalent."
+)
 st.caption(
     "Baseline associations are candidates for predicting response. Later measurements may reflect treatment effects. "
     "These comparisons without covariate adjustment do not establish causation or predictive performance; "
